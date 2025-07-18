@@ -15,7 +15,8 @@ describe("token", () => {
   let context: any;
   let provider: BankrunProvider;
   let program: Program<Token>;
-  let payer: anchor.Wallet;
+  let admin: anchor.Wallet;
+  let secondUser: anchor.Wallet;
   let mintPda: PublicKey;
   let ata: PublicKey;
 
@@ -39,26 +40,90 @@ describe("token", () => {
 
     ata = await getAssociatedTokenAddress(mintPda, mintPda, true)
 
-    payer = provider.wallet as anchor.Wallet;
+    admin = provider.wallet as anchor.Wallet;
+    
+    const secondUserKeypair = anchor.web3.Keypair.generate();
+    secondUser = new anchor.Wallet(secondUserKeypair);
   })
 
-  it("Create token account", async () => {
+  it("Initialize program owner", async () => {
+    const _ = await program.
+    methods.
+    initOwner().
+    accounts({
+      admin: admin.publicKey,
+    }).rpc()
+
+    console.log("Admin PubKey is ", admin.publicKey.toBase58());
+  })
+
+  it("Initialize program owner again with other credentials", async () => {
+    let errorCought = false;
+    try {
+      const _ = await program.
+      methods.
+      initOwner().
+      accounts({
+        admin: secondUser.publicKey,
+      }).rpc()
+    } catch (_) {
+      errorCought = true;
+    }
+
+    assert.isTrue(errorCought, "Error should be caught");
+  })
+
+  it("Create token with wrong owner credentials", async () => {
+    let errorCought = false;
+    try {
+      const _ = await program.
+      methods.
+      createToken("test", "TEST", "https://test.com/spl-token.json").
+      accounts({
+        payer: secondUser.publicKey,
+      }).
+      rpc()
+    } catch (_) {
+      errorCought = true;
+    }
+
+    assert.isTrue(errorCought, "Error should be caught");
+  })
+  
+  it("Create token", async () => {
     const tx = await program.
     methods.
     createToken("test", "TEST", "https://test.com/spl-token.json").
     accounts({
-      payer: payer.publicKey,
+      payer: admin.publicKey,
     }).
     rpc()
     console.log("Your create token transaction signature", tx);
   });
+
+  it("Mint supply with wrong owner", async () => {
+    let errorCought = false;
+    try {
+      const _ = await program.
+      methods.
+      mintSupply().
+      accounts({
+        payer: secondUser.publicKey,
+      }).
+      rpc()
+    } catch (_) {
+      errorCought = true;
+    }
+
+    assert.isTrue(errorCought, "Error should be caught");
+  })
 
   it("Mint supply", async () => {
     const tx = await program.
     methods.
     mintSupply().
         accounts({
-      payer: payer.publicKey,
+      payer: admin.publicKey,
     }).
     rpc()
 

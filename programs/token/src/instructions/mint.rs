@@ -1,8 +1,16 @@
-use anchor_lang::Accounts;
-use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{Mint, MintTo, Token, TokenAccount, mint_to, set_authority, SetAuthority};
-use anchor_spl::token::spl_token::instruction::AuthorityType;
+use {
+    anchor_lang::{
+        Accounts,
+        prelude::*
+    },
+    anchor_spl::{
+        associated_token::AssociatedToken,
+        token::{Mint, MintTo, Token, TokenAccount, mint_to, set_authority, SetAuthority},
+        token::spl_token::instruction::AuthorityType
+    },
+    crate::state::owner_state::TokenOwner,
+    crate::instructions::errors::TokenError,
+};
 
 #[derive(Accounts)]
 pub struct MintTokens<'info> {
@@ -23,6 +31,12 @@ pub struct MintTokens<'info> {
     associated_token::authority = mint)]
     pub associated_token_account: Account<'info, TokenAccount>,
 
+    #[account(
+        seeds = [b"owner"],
+        bump
+        )]
+        pub owner: Account<'info, TokenOwner>,
+
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -31,6 +45,12 @@ pub struct MintTokens<'info> {
 const TOTAL_SUPPLY: u64 = 100_000_000;
 
 pub fn mint_supply(ctx: Context<MintTokens>) -> Result<()> {
+    require_keys_eq!(
+        ctx.accounts.payer.key(),
+        ctx.accounts.owner.owner.key(),
+        TokenError::Unauthorized
+    );
+
     let signer_seeds: &[&[&[u8]]] = &[&[b"mint", &[ctx.bumps.mint]]];
 
     mint_to(

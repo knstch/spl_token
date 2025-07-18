@@ -7,7 +7,9 @@ use {
         },
         token::{Mint, Token}
     },
-    mpl_token_metadata::ID as METAPLEX_METADATA_PROGRAM_ID
+    mpl_token_metadata::ID as METAPLEX_METADATA_PROGRAM_ID,
+    crate::state::owner_state::TokenOwner,
+    crate::instructions::errors::TokenError,
 };
 
 #[derive(Accounts)]
@@ -38,6 +40,11 @@ pub struct CreateToken<'info> {
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
+    #[account(
+    seeds = [b"owner"],
+    bump
+    )]
+    pub owner: Account<'info, TokenOwner>,
 
     /// CHECK: this must be the Metaplex Token Metadata program
     #[account(address = METAPLEX_METADATA_PROGRAM_ID)]
@@ -47,6 +54,12 @@ pub fn create_token(ctx: Context<CreateToken>,
                                 name: String,
                                 symbol: String,
                                 uri: String) -> Result<()> {
+    require_keys_eq!(
+        ctx.accounts.payer.key(),
+        ctx.accounts.owner.owner.key(),
+        TokenError::Unauthorized
+    );
+
     let signer_seeds: &[&[&[u8]]] = &[&[b"mint", &[ctx.bumps.mint]]];
 
     create_metadata_accounts_v3(

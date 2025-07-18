@@ -9,6 +9,7 @@ pub struct Vesting {
 }
 
 #[account]
+#[derive(InitSpace)]
 pub struct UserClaim {
     pub user: Pubkey,
     pub total_allocation: u64,

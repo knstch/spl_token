@@ -50,6 +50,7 @@ pub struct CreateToken<'info> {
     #[account(address = METAPLEX_METADATA_PROGRAM_ID)]
     pub token_metadata_program: UncheckedAccount<'info>,
 }
+
 pub fn create_token(ctx: Context<CreateToken>,
                                 name: String,
                                 symbol: String,

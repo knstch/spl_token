@@ -10,7 +10,7 @@ use {
     instructions::*,
 };
 
-declare_id!("F5Law78kGmxJ4igLNhFmpnSGgaZiTjkkxZBnr31VjEeH");
+declare_id!("Ecveh3AEh6kjcKfHqSgLfY4KKJ8nZHZxvJW5D8VejPr8");
 
 #[program]
 pub mod token {

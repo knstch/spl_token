@@ -28,14 +28,15 @@ pub struct MintTokens<'info> {
     init_if_needed,
     payer = payer,
     associated_token::mint = mint,
-    associated_token::authority = mint)]
+    associated_token::authority = mint,
+    )]
     pub associated_token_account: Account<'info, TokenAccount>,
 
     #[account(
         seeds = [b"owner"],
         bump
         )]
-        pub owner: Account<'info, TokenOwner>,
+    pub owner: Account<'info, TokenOwner>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,

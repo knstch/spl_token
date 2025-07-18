@@ -1,6 +1,6 @@
 use {
     crate::{
-        state::vesting_merkle_tree::*,
+        state::vesting::*,
         state::owner_state::TokenOwner,
         instructions::errors::TokenError,
     },

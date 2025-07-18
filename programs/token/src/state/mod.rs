@@ -1,2 +1,2 @@
-pub mod vesting_merkle_tree;
+pub mod vesting;
 pub mod owner_state;
